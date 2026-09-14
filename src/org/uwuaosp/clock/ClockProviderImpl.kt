@@ -40,7 +40,7 @@ class ClockProviderImpl : ClockProviderPlugin {
         val style = ClockStyles.forId(settings.clockId)
         return ClockControllerImpl(
             pluginContext = pluginContext,
-            settings = settings.copy(clockId = style.id),
+            settings = settings,
             messageBuffers = messageBuffers
                 ?: ClockMessageBuffers(LogcatOnlyMessageBuffer(LogLevel.DEBUG)),
             timeKeeper = TimeKeeperImpl(),
