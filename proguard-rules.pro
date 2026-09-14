@@ -1,1 +1,2 @@
+-keep class org.uwuaosp.clock.ClockProviderImpl { *; }
 -keepclassmembers class org.uwuaosp.clock.R$* { public static <fields>; }

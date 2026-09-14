@@ -8,7 +8,7 @@
 
     <application>
         <service
-            android:name="org.uwuaosp.clock.UwuClockProvider"
+            android:name="org.uwuaosp.clock.ClockProviderImpl"
             android:enabled="true"
             android:directBootAware="true"
             android:exported="true">
