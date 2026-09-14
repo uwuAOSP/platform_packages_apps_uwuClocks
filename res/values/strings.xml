@@ -1,6 +1,14 @@
 <resources>
-    <string name="uwu_clock_name">uwuClock</string>
-    <string name="uwu_clock_description">Date-first clock with dynamic color</string>
-    <string name="uwu_clock_horizontal_name">uwuClock Horizontal</string>
-    <string name="uwu_clock_horizontal_description">Horizontal large-number clock preview</string>
+    <string name="clock_essential_name">Essential</string>
+    <string name="clock_essential_description">A clear everyday clock with a quiet date line</string>
+    <string name="clock_split_name">Split</string>
+    <string name="clock_split_description">Layered hours, date, and minutes for a strong lockscreen layout</string>
+    <string name="clock_rail_name">Rail</string>
+    <string name="clock_rail_description">A compact horizontal clock for small lockscreen spaces</string>
+    <string name="clock_orbital_name">Orbital</string>
+    <string name="clock_orbital_description">A circular day-progress clock with a calm center display</string>
+    <string name="clock_pixel_name">Pixel</string>
+    <string name="clock_pixel_description">A geometric dot-matrix clock with an unmistakable silhouette</string>
+    <string name="clock_weather_name">Weather</string>
+    <string name="clock_weather_description">Time, date, and current weather in one glance</string>
 </resources>
