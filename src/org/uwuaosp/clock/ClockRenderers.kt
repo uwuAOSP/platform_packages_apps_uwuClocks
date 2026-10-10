@@ -13,6 +13,7 @@ import com.android.systemui.plugins.keyguard.VPointF
 import com.android.systemui.plugins.keyguard.ui.clocks.ClockAxisStyle
 import com.android.systemui.plugins.keyguard.ui.clocks.ClockPositionAnimationArgs
 import com.android.systemui.plugins.keyguard.ui.clocks.ThemeConfig
+import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 
@@ -35,6 +36,7 @@ private abstract class BaseRenderer(
 ) : FrameLayout(rendererContext), ClockRenderer {
     protected var state: ClockRenderState? = null
     protected var fontSizePx = defaultFontSizePx()
+    private var requestedFontSizePx = fontSizePx
     protected var primaryColor = Color.WHITE
     protected var secondaryColor = Color.WHITE
     protected var accentColor = Color.WHITE
@@ -66,7 +68,8 @@ private abstract class BaseRenderer(
     }
 
     override fun onFontSizeChanged(fontSizePx: Float) {
-        this.fontSizePx = fontSizePx.coerceAtLeast(1f)
+        requestedFontSizePx = fontSizePx.coerceAtLeast(1f)
+        this.fontSizePx = requestedFontSizePx
         requestLayout()
         invalidate()
     }
@@ -106,11 +109,27 @@ private abstract class BaseRenderer(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        // Refit from the requested size so a narrow preview cannot shrink later layouts.
+        fontSizePx = requestedFontSizePx
         val desired = desiredSize()
+        val scale =
+            min(
+                sizeScale(desired.first, widthMeasureSpec),
+                sizeScale(desired.second, heightMeasureSpec),
+            )
+        fontSizePx = requestedFontSizePx * scale
+        val fitted = desiredSize()
         setMeasuredDimension(
-            resolveSize(desired.first, widthMeasureSpec),
-            resolveSize(desired.second, heightMeasureSpec),
+            resolveSize(fitted.first, widthMeasureSpec),
+            resolveSize(fitted.second, heightMeasureSpec),
         )
+    }
+
+    private fun sizeScale(desired: Int, measureSpec: Int): Float {
+        if (MeasureSpec.getMode(measureSpec) == MeasureSpec.UNSPECIFIED || desired <= 0) {
+            return 1f
+        }
+        return (MeasureSpec.getSize(measureSpec).toFloat() / desired).coerceIn(0f, 1f)
     }
 
     protected abstract fun desiredSize(): Pair<Int, Int>
@@ -130,6 +149,12 @@ private abstract class BaseRenderer(
         paint.color = color
         paint.textSize = size
         paint.typeface = Typeface.create(Typeface.create(family, Typeface.NORMAL), weight, false)
+        val availableWidth = (min(centerX, width - centerX) * 2f).coerceAtLeast(0f)
+        if (availableWidth == 0f) return
+        val textWidth = paint.measureText(text)
+        if (textWidth > availableWidth) {
+            paint.textSize *= availableWidth / textWidth
+        }
         val metrics = paint.fontMetrics
         val baseline = centerY - (metrics.ascent + metrics.descent) / 2f
         canvas.drawText(text, centerX - paint.measureText(text) / 2f, baseline, paint)
@@ -291,7 +316,14 @@ private class PixelRenderer(context: Context, isLargeClock: Boolean) :
         )
 
     override fun desiredSize(): Pair<Int, Int> {
-        return (fontSizePx * 3.8f).toInt() to (fontSizePx * 1.35f).toInt()
+        val cell = max(2f, fontSizePx * 0.105f)
+        val gap = cell * 0.38f
+        val charWidth = cell * 5f + gap * 4f
+        val charGap = cell * 1.8f
+        val count = state?.timeText?.length ?: 5
+        val textWidth = count * charWidth + (count - 1).coerceAtLeast(0) * charGap
+        return ceil(max(fontSizePx * 3.8f, textWidth)).toInt() to
+            ceil(fontSizePx * 1.35f).toInt()
     }
 
     override fun onDraw(canvas: Canvas) {
