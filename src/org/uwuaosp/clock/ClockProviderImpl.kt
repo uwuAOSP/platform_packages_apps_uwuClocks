@@ -33,14 +33,27 @@ class ClockProviderImpl : ClockProviderPlugin {
     }
 
     override fun getClocks(): List<ClockMetadata> {
-        return ClockStyles.all().map { ClockMetadata(it.id) }
+        return ClockStyles.all().map { ClockMetadata(it.id) } +
+            listOf(
+                ClockMetadata(
+                    ClockStyles.LEGACY_ID,
+                    isDeprecated = true,
+                    replacementTarget = ClockStyles.ESSENTIAL_ID,
+                ),
+                ClockMetadata(
+                    ClockStyles.LEGACY_HORIZONTAL_ID,
+                    isDeprecated = true,
+                    replacementTarget = ClockStyles.ESSENTIAL_ID,
+                ),
+            )
     }
 
     override fun createClock(ctx: Context, settings: ClockSettings): ClockController {
         val style = ClockStyles.forId(settings.clockId)
         return ClockControllerImpl(
             pluginContext = pluginContext,
-            settings = settings,
+            settings =
+                if (settings.clockId == style.id) settings else settings.copy(clockId = style.id),
             messageBuffers = messageBuffers
                 ?: ClockMessageBuffers(LogcatOnlyMessageBuffer(LogLevel.DEBUG)),
             timeKeeper = TimeKeeperImpl(),
