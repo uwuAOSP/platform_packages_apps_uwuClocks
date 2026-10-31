@@ -28,6 +28,10 @@ object ClockStyles {
     const val PIXEL_ID = "CLOCK_PIXEL"
     const val WEATHER_ID = "CLOCK_WEATHER"
 
+    /** IDs registered by the first uwuClocks release, kept so old selections keep applying. */
+    const val LEGACY_ID = "UWU_CLOCK"
+    const val LEGACY_HORIZONTAL_ID = "UWU_CLOCK_HORIZONTAL"
+
     private val styles =
         listOf(
             ClockStyleSpec(
@@ -78,6 +82,12 @@ object ClockStyles {
     fun all(): List<ClockStyleSpec> = styles
 
     fun forId(id: ClockId?): ClockStyleSpec {
-        return styles.firstOrNull { it.id == id } ?: styles.first()
+        val resolvedId =
+            when (id) {
+                LEGACY_ID,
+                LEGACY_HORIZONTAL_ID -> ESSENTIAL_ID
+                else -> id
+            }
+        return styles.firstOrNull { it.id == resolvedId } ?: styles.first()
     }
 }

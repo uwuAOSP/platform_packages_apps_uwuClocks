@@ -236,9 +236,15 @@ private class SplitRenderer(context: Context, isLargeClock: Boolean) :
         super.onDraw(canvas)
         val current = state ?: return
         val x = centerX()
-        drawText(canvas, current.timeText.substringBefore(":"), x, height * 0.25f, fontSizePx * 1.42f, primaryColor, 700, "google-sans-flex-clock")
+        val separatorIndex = current.timeText.indexOf(':')
+        val hour =
+            if (separatorIndex >= 0) current.timeText.substring(0, separatorIndex)
+            else current.timeText
+        val minute =
+            if (separatorIndex >= 0) current.timeText.substring(separatorIndex + 1) else ""
+        drawText(canvas, hour, x, height * 0.25f, fontSizePx * 1.42f, primaryColor, 700, "google-sans-flex-clock")
         drawText(canvas, current.dateText, x, height * 0.51f, fontSizePx * 0.24f, secondaryColor, 500)
-        drawText(canvas, current.timeText.substringAfter(":", current.timeText), x, height * 0.78f, fontSizePx * 1.42f, accentColor, 700, "google-sans-flex-clock")
+        drawText(canvas, minute, x, height * 0.78f, fontSizePx * 1.42f, accentColor, 700, "google-sans-flex-clock")
     }
 }
 
@@ -251,8 +257,12 @@ private class RailRenderer(context: Context, isLargeClock: Boolean) :
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         val current = state ?: return
-        val hour = current.timeText.substringBefore(":")
-        val minute = current.timeText.substringAfter(":", current.timeText)
+        val separatorIndex = current.timeText.indexOf(':')
+        val hour =
+            if (separatorIndex >= 0) current.timeText.substring(0, separatorIndex)
+            else current.timeText
+        val minute =
+            if (separatorIndex >= 0) current.timeText.substring(separatorIndex + 1) else ""
         val timeSize = fontSizePx * 0.92f
         val gap = fontSizePx * 0.12f
         paint.typeface = Typeface.create(Typeface.create("google-sans-flex-clock", Typeface.NORMAL), 700, false)
@@ -339,20 +349,20 @@ private class PixelRenderer(context: Context, isLargeClock: Boolean) :
         val startY = height * 0.16f
         for (character in text) {
             val pattern = patterns[character]
-            if (pattern == null) {
-                drawText(canvas, current.timeText, centerX(), height * 0.42f, fontSizePx * 0.9f, primaryColor, 700, "monospace")
-                break
-            }
-            for (row in pattern.indices) {
-                for (column in pattern[row].indices) {
-                    if (pattern[row][column] != '1') continue
-                    paint.style = Paint.Style.FILL
-                    paint.color = if (character == ':') accentColor else primaryColor
-                    val left = startX + column * (cell + gap)
-                    val top = startY + row * (cell + gap)
-                    canvas.drawRoundRect(left, top, left + cell, top + cell, cell / 3f, cell / 3f, paint)
+            if (pattern != null) {
+                for (row in pattern.indices) {
+                    for (column in pattern[row].indices) {
+                        if (pattern[row][column] != '1') continue
+                        paint.style = Paint.Style.FILL
+                        paint.color = if (character == ':') accentColor else primaryColor
+                        val left = startX + column * (cell + gap)
+                        val top = startY + row * (cell + gap)
+                        canvas.drawRoundRect(left, top, left + cell, top + cell, cell / 3f, cell / 3f, paint)
+                    }
                 }
             }
+            // Keep the slot of unrenderable glyphs blank instead of abandoning the dot matrix
+            // style, so the style still applies with locale specific time text.
             startX += charWidth + charGap
         }
         drawText(canvas, current.dateText, centerX(), height * 0.86f, fontSizePx * 0.18f, secondaryColor, 500)
